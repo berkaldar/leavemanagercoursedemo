@@ -81,6 +81,7 @@ def people(db: DbDep) -> list[PersonOut]:
 
 @router.post("/session", status_code=204)
 def log_in(body: LoginIn, request: Request, db: DbDep) -> Response:
+    live_sessions(request).pop(request.session.get("sid", ""), None)  # any login ends the old one
     request.session.clear()
     if isinstance(get_person(db, body.person_id), Err):
         raise ApiError(404, "NOT_FOUND", "No such person.")

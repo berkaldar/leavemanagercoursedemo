@@ -68,5 +68,21 @@ def test_logout_ends_session(client: TestClient) -> None:
     assert_not_logged_in(client)
 
 
+def test_new_login_retires_the_previous_session(client: TestClient) -> None:
+    login(client, ALI_ID)
+    old_cookie = client.cookies["session"]
+    login(client, ELIF_ID)
+    client.cookies.set("session", old_cookie)
+    assert_not_logged_in(client)
+
+
+def test_refused_login_retires_the_previous_session(client: TestClient) -> None:
+    login(client, ALI_ID)
+    old_cookie = client.cookies["session"]
+    assert client.post("/api/session", json={"person_id": "not-a-person"}).status_code == 404
+    client.cookies.set("session", old_cookie)
+    assert_not_logged_in(client)
+
+
 def test_responses_carry_content_security_policy(client: TestClient) -> None:
     assert client.get("/api/people").headers["content-security-policy"] == "default-src 'self'"

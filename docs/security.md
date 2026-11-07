@@ -21,7 +21,7 @@
 - **AuthN (demo-grade, deliberate):** people are seeded; "login" = picking a seeded Employee. The
   session is Starlette `SessionMiddleware` — a signed (itsdangerous), `HttpOnly`, `SameSite=Lax`
   browser-session cookie that carries only a random session id; the server keeps the live ids and
-  forgets one on logout, so a copied cookie does not outlive it. A new id on every login. No passwords. **This app is never deployed with real people's data.**
+  forgets one on logout and on any new login attempt, so a copied cookie does not outlive it. A new id on every login. No passwords. **This app is never deployed with real people's data.**
 - **AuthZ — sensitive area (`docs/domain.md`), default-deny:** every `/api` route requires a session
   except login and the seeded-people list for the login screen. The decision is made in the
   `app.leave` / `app.people` domain functions, which take the acting Employee as an explicit
