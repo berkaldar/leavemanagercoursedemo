@@ -65,6 +65,7 @@ default `file:leave.db`).
 - `sqlite3`'s built-in date adapters are deprecated (3.12+) — convert explicitly with `isoformat()` / `date.fromisoformat()`, never `detect_types` — from bootstrap
 - `:memory:` is per connection and sync FastAPI endpoints run in a threadpool — one connection per request (a dependency with `yield`); tests use a named shared-cache memory DB (`file:<name>?mode=memory&cache=shared`, `uri=True`, `check_same_thread=False`) — from bootstrap
 - `datetime.utcnow()` is naive and deprecated — `datetime.now(UTC)`, and only inside the `Clock` — from bootstrap
+- Starlette's `Exception` handler runs in `ServerErrorMiddleware`, outside `@app.middleware` — headers a middleware sets are missing on 500s; set them in the handler too — from 0001 review (A-3)
 - JS `innerHTML` with data is an XSS hole (vanilla JS has no auto-escaping) — build DOM with `createElement` / `textContent`; never put data into `innerHTML` — from bootstrap
 
 ## Enforced by tooling

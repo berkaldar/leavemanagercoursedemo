@@ -15,10 +15,12 @@ from app.db import migrate, open_db, seed
 from app.http import ApiError, router
 
 WEB = Path(__file__).resolve().parent.parent / "web"
+CSP = {"Content-Security-Policy": "default-src 'self'"}
 
 
 def error(status: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse({"error": code, "message": message}, status_code=status)
+    # Set here too: the Exception handler runs outside the CSP middleware (Known traps).
+    return JSONResponse({"error": code, "message": message}, status_code=status, headers=CSP)
 
 
 def create_app(db_uri: str, session_secret: str) -> FastAPI:
@@ -38,7 +40,7 @@ def create_app(db_uri: str, session_secret: str) -> FastAPI:
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         response = await call_next(request)
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers.update(CSP)
         return response
 
     @app.exception_handler(ApiError)

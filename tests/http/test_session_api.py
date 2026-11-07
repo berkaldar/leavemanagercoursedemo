@@ -86,3 +86,18 @@ def test_refused_login_retires_the_previous_session(client: TestClient) -> None:
 
 def test_responses_carry_content_security_policy(client: TestClient) -> None:
     assert client.get("/api/people").headers["content-security-policy"] == "default-src 'self'"
+
+
+def test_unexpected_error_is_generic_and_carries_csp() -> None:
+    app = create_app(memory_db_uri(), session_secret="test-secret")
+
+    def boom() -> None:
+        raise RuntimeError("SELECT secret FROM people")
+
+    app.add_api_route("/api/boom", boom)
+    app.router.routes.insert(0, app.router.routes.pop())  # ahead of the static mount at "/"
+    response = TestClient(app, raise_server_exceptions=False).get("/api/boom")
+    app.state.anchor.close()
+    assert response.status_code == 500
+    assert response.json() == {"error": "INTERNAL", "message": "Something went wrong."}
+    assert response.headers["content-security-policy"] == "default-src 'self'"
