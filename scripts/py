@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs the project venv's Python: .venv/bin on Linux/macOS, .venv/Scripts on Windows.
+venv="$(dirname "$0")/../.venv"
+[ -x "$venv/bin/python" ] && exec "$venv/bin/python" "$@"
+exec "$venv/Scripts/python.exe" "$@"
