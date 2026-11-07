@@ -55,6 +55,8 @@ def test_scanner_resolves_relative_and_absolute_imports() -> None:
     source = "import sqlite3\nfrom ..http import routes\nfrom app.people.store import x\n"
     found = imported_modules(source, "app.leave.service")
     assert {"sqlite3", "app.http", "app.http.routes", "app.people.store"} <= found
+    assert "sqlite3.dbapi2" in imported_modules("import sqlite3.dbapi2\n", "app.leave")
+    assert in_package("sqlite3.dbapi2", "sqlite3")
     assert clock_calls("from datetime import date\nd = date.today()\n") == {"date.today"}
 
 
@@ -82,7 +84,7 @@ def test_leave_uses_people_only_through_its_package() -> None:  # rule 3
 def test_only_db_imports_sqlite3() -> None:  # rule 4
     for name, (_, imports) in app_files().items():
         if not in_package(name, "app.db"):
-            assert "sqlite3" not in imports, name
+            assert not any(in_package(i, "sqlite3") for i in imports), name
 
 
 def test_leave_never_reads_the_system_clock() -> None:  # rule 5
