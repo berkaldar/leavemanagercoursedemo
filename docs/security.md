@@ -5,7 +5,8 @@
 ## Secrets
 - Secrets never enter the repo, specs, prompts, or chat. `.env` is gitignored; provide `.env.example`.
 - Agents never print secret values, even when debugging.
-- The only secret in v1 is `SESSION_SECRET` (cookie signing), read from `.env`; tests generate one.
+- The only secret in v1 is `SESSION_SECRET` (cookie signing), read from the environment; when unset,
+  a random one is generated per process (sessions then end on restart). Tests pass a fixed one.
 
 ## Input & output
 - Every route declares Pydantic models for body, params and query with `extra="forbid"`; dates are
@@ -19,7 +20,8 @@
 ## AuthN / AuthZ
 - **AuthN (demo-grade, deliberate):** people are seeded; "login" = picking a seeded Employee. The
   session is Starlette `SessionMiddleware` — a signed (itsdangerous), `HttpOnly`, `SameSite=Lax`
-  cookie. No passwords. **This app is never deployed with real people's data.**
+  browser-session cookie that carries only a random session id; the server keeps the live ids and
+  forgets one on logout, so a copied cookie does not outlive it. A new id on every login. No passwords. **This app is never deployed with real people's data.**
 - **AuthZ — sensitive area (`docs/domain.md`), default-deny:** every `/api` route requires a session
   except login and the seeded-people list for the login screen. The decision is made in the
   `app.leave` / `app.people` domain functions, which take the acting Employee as an explicit

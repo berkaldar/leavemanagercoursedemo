@@ -15,7 +15,8 @@ data, a course demo — services would add operations cost and teach nothing abo
 |---|---|---|
 | `app/leave/` | Leave requests, Working-day counting, balance math, Status machine (BR-1..BR-6) and its authorization decisions | Leave requests |
 | `app/people/` | Employees, the Manager relation, the seeded people | Employees |
-| `app/http/` | FastAPI routers, session, Pydantic boundary models: validate input → call a module's public API → map the result to HTTP | Nothing persistent (session cookie only) |
+| `app/http/` | FastAPI routers, session, Pydantic boundary models: validate input → call a module's public API → map the result to HTTP | Live session ids, in process memory (not persistent) |
+| `app/result.py` | `Ok` / `Err` / `ErrorCode` shared by the domain packages (`docs/conventions.md`, Error handling) | — |
 | `app/db/` | Opening SQLite connections, migrations, seed | The connection and schema |
 | `app/main.py` | `create_app()`: wires routers, middleware, static files | — |
 | `web/` | Static UI (`index.html`, `css/`, `js/`); talks to the API over HTTP only | Nothing persistent |

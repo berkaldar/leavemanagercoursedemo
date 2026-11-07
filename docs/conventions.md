@@ -22,6 +22,12 @@ Every dependency is pinned with `==` in `requirements.txt` (runtime) / `requirem
 includes `-r requirements.txt`); installed into `.venv` with pip. The Python version is pinned in
 `.python-version`. Every check step calls the venv's Python through `scripts/py`.
 
+**Setup & run:** `<python 3.14> -m venv .venv` (on Windows the full path, e.g.
+`%LOCALAPPDATA%Pythonpythoncore-3.14-64python.exe`, if `python` is not on PATH) ·
+`scripts/py -m pip install -r requirements-dev.txt` · `scripts/py -m playwright install chromium` ·
+run locally: `scripts/py -m uvicorn --factory app.main:create_app_from_env` (database `LEAVE_DB`,
+default `file:leave.db`).
+
 ## Naming
 - Python: PEP 8 — `snake_case` modules, functions, variables; `PascalCase` classes; `UPPER_CASE` constants.
 - Each package exposes its public API from `__init__.py`; everything else in the package is internal.

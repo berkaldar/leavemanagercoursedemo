@@ -19,8 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # The bootstrap workflow may add toolchain setup steps here (e.g. setup-java, setup-node)
-      # to match the commands it writes into scripts/check.conf.
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Toolchain (venv, pinned dependencies, Chromium)
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements-dev.txt
+          .venv/bin/python -m playwright install --with-deps chromium
       # --fast is for the inner loop only; CI always runs the full contract (docs/testing.md).
       - name: Verification contract
         run: |
