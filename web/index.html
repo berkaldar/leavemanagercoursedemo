@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Leave Manager</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <script type="module" src="/js/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <section id="login" hidden>
+        <h1 tabindex="-1">Leave Manager</h1>
+        <form id="login-form" novalidate>
+          <label for="person">Who are you?</label>
+          <select id="person">
+            <option value="">Choose your name</option>
+          </select>
+          <button type="submit">Log in</button>
+          <p id="login-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="my-requests" hidden>
+        <h1 tabindex="-1">My requests</h1>
+        <p id="signed-in"></p>
+        <button id="logout" type="button">Log out</button>
+        <p id="requests-status" role="status" aria-live="polite"></p>
+        <button id="retry" type="button" hidden>Try again</button>
+      </section>
+    </main>
+  </body>
+</html>
