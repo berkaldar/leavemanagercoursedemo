@@ -1,6 +1,6 @@
 # Testing
 
-> **Template — filled during bootstrap.**
+> Filled at bootstrap (2026-11-07).
 
 ## The contract
 - Every acceptance criterion maps to at least one test (criterion ↔ test map lives in the plan).
@@ -8,11 +8,41 @@
 - The whole suite runs inside `scripts/check` — one command, everywhere.
 
 ## Frameworks & layout
-<!-- Test framework(s), where tests live, naming pattern. -->
+- **pytest** for every layer, run through `scripts/py -m pytest`. Tests live in `tests/`, mirroring `app/`.
+- **Unit** — pure functions in `app.leave` / `app.people` with plain values and a fixed "today".
+- **API integration** — FastAPI `TestClient` (no listening port) against a fresh named shared-cache
+  memory SQLite DB per test, seeded inside the test; nothing touches disk, so every run starts from
+  a known state (Resource hygiene, rule 5). Fast enough to stay in the fast profile.
+- **Architecture** — `tests/test_architecture.py`: reads imports with `ast`, asserts the forbidden
+  dependencies in `docs/architecture.md`.
+- **e2e (UI states)** — `tests/e2e/`, marker `e2e`, `pytest-playwright` with headless Chromium,
+  **one worker** (no xdist). The frontend is vanilla JS, so the journeys are the layer that proves
+  UI states (ADR 0001).
+  - **App-under-test lifecycle:** one session-scoped fixture runs uvicorn in a **thread inside the
+    pytest process** on a free port and sets `should_exit` on teardown — no child process, so a
+    crash cannot orphan the server. Chromium is closed by pytest-playwright's fixtures; the residue
+    test proves both.
+  - **Determinism:** browser context `timezone_id="UTC"`, `locale="en-US"`, `reduced_motion="reduce"`;
+    no CSS transitions in v1; fixed "today" via FastAPI `dependency_overrides`; a fresh seeded
+    memory DB per test.
+- **Fast/full split (selector):** `[fast]` runs `pytest -m "not e2e"`; the full-only step runs
+  `pytest -m e2e` — the same marker, inverted.
+- **UI screenshots** (Evidence for UI criteria) are captured outside check with headless Playwright
+  against a locally started app with seeded data.
+- No coverage threshold: the criterion ↔ test map is the contract.
 
 ## What must be tested
-<!-- e.g. every business rule (BR-n), every boundary/forbidden dependency; the e2e journeys and
-     budget, if the project has e2e at all (Test layers). -->
+- Every business rule BR-1..BR-6 and the balance invariant (`docs/domain.md`) — unit, with edge
+  dates (weekends at both ends, year boundary, zero-working-day range).
+- Every route's authorization (sensitive area): allowed actor, other Employee, other Manager,
+  self-approval — API integration; out-of-scope access returns 404.
+- Every forbidden dependency — the architecture test.
+- Every UI state a spec lists (empty, loading, error, success, no permission) — inside an e2e journey.
+- **e2e journeys — budget: at most 3 journeys, 90 s total (full profile):**
+  - J-1: log in → "My requests" (empty, then success). Added by the walking skeleton.
+  - J-2: submit a request that breaks a rule → error state shown.
+  - J-3: an Employee opens a Manager-only view → no-permission state.
+  Over budget, no journey is added: the next UI check goes into an existing journey or a layer down.
 
 ## Test layers
 1. **The cheapest test that proves the criterion.** Unit first, then component or integration
