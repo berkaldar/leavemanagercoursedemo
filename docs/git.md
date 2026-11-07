@@ -1,6 +1,6 @@
 # Git
 
-> **Template — adjust at bootstrap.** Defaults below are safe; loosen consciously, not accidentally.
+> Adjusted at bootstrap (2026-11-07): ANEW defaults kept. Loosen consciously, not accidentally.
 
 ## Branching
 - `feature/<spec-no>-<short-name>` — **no branch without a spec.** Also for CHANGE-lane mini-specs.
@@ -11,9 +11,10 @@
   any branch.
 
 ## Commits
-- Conventional Commits, with a plan reference: `feat(catalog): paging endpoint [plan 0001/3]`.
+- Conventional Commits, with a plan reference: `feat(leave): balance endpoint [plan 0001/3]`.
+  Scopes are the modules: `leave`, `people`, `http`, `db`, `web` — plus `docs`, `chore`, `test`.
   Review fixes name their fix round instead of the step:
-  `fix(catalog): empty page size [plan 0001/fix-2]` — the reviewer counts rounds from these
+  `fix(leave): overlap on same day [plan 0001/fix-2]` — the reviewer counts rounds from these
   (R-06 after round 3).
 - Agent commits follow the same standard: the agent writes the message, the human approves it
   through the gate before the commit, not one by one — an approved plan covers its
@@ -33,10 +34,12 @@
 ## Trivial changes
 <!-- Set at bootstrap. Applies only to requests the change-request triage rubric
      (workflows/change-request.md) classifies as TRIVIAL: no acceptance criterion changes, no shared code. -->
-- Policy: **(1) PR + one reviewer, no spec** — default; alternatives: (2) direct commit allowed on a
+- Policy: **(1) PR + one reviewer, no spec** — chosen at bootstrap. Not chosen: (2) direct commit allowed on a
   `trivial/<short-name>` branch · (3) everything goes through a mini-spec (`specs/TEMPLATE-mini.md`;
   no ANALYZE here: run the self-critique pass of `prompts/spec.md`, then `Self-critique: done`).
 - Always: one narrow commit, `scripts/check` green. A second file or a new test means re-triage.
 
 ## Pull requests
 - PR template checklist completed; `scripts/check` green in CI; squash-merge.
+- Remote: GitHub `berkaldar/leavemanagercoursedemo`. Branch protection on `main` (PR + the
+  `check` status required) is set by the owner in GitHub settings.
