@@ -1,7 +1,7 @@
-"""Leave requests and their rules (docs/domain.md, BR-1..BR-6)."""
+"""Leave requests and their rules (docs/domain.md, BR-1..BR-8)."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from app.db import Db
 from app.people import Person
@@ -15,6 +15,20 @@ class LeaveRequest:
     start_date: date
     end_date: date
     status: str
+
+
+type Span = tuple[date, date]
+
+
+def plant_shutdowns(db: Db) -> list[Span]:
+    rows = db.fetch_all("SELECT start_date, end_date FROM plant_shutdowns")
+    return [(date.fromisoformat(r["start_date"]), date.fromisoformat(r["end_date"])) for r in rows]
+
+
+def working_days(start: date, end: date, shutdowns: list[Span]) -> int:
+    """Monday–Friday in start … end (inclusive), minus Plant shutdown days (docs/domain.md)."""
+    days = (start + timedelta(n) for n in range((end - start).days + 1))
+    return sum(1 for d in days if d.weekday() < 5 and not any(s <= d <= e for s, e in shutdowns))
 
 
 def list_my_requests(db: Db, actor: Person) -> list[LeaveRequest]:
