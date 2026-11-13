@@ -2,16 +2,16 @@
 
 import secrets
 from collections.abc import Iterator
-from datetime import date
-from typing import Annotated
+from datetime import UTC, date, datetime
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, ConfigDict
 
 from app.db import Db, open_db
-from app.leave import list_my_requests
+from app.leave import LeaveRequest, list_my_requests, submit_request
 from app.people import Person, get_person, list_people
-from app.result import Err
+from app.result import Err, ErrorCode
 
 router = APIRouter(prefix="/api")
 
@@ -37,6 +37,24 @@ class RequestOut(BaseModel):
     start_date: date
     end_date: date
     status: str
+    working_days: int
+
+
+class NewRequestIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # no owner field: the owner is the session (AC-10)
+    leave_type: Literal["Annual", "Unpaid"]
+    start_date: date
+    end_date: date
+
+
+# The spec's refusal sentences (spec 0002, User experience); the UI shows them as they are.
+REFUSALS = {
+    ErrorCode.END_BEFORE_START: "The end date must be on or after the start date.",
+    ErrorCode.NO_WORKING_DAYS: "This range has no working days.",
+    ErrorCode.START_IN_PAST: "The start date cannot be in the past.",
+    ErrorCode.SPANS_YEARS: "A request must start and end in the same calendar year.",
+    ErrorCode.OVERLAP: "You already have a pending or approved request on these dates.",
+}
 
 
 class MyRequestsOut(BaseModel):
@@ -74,6 +92,25 @@ def current_person(request: Request, db: DbDep) -> Person:
 ActorDep = Annotated[Person, Depends(current_person)]
 
 
+def today() -> date:
+    """The Clock: the server's local date (docs/architecture.md); tests override it."""
+    return datetime.now(UTC).astimezone().date()
+
+
+TodayDep = Annotated[date, Depends(today)]
+
+
+def request_out(r: LeaveRequest) -> RequestOut:
+    return RequestOut(
+        id=r.id,
+        leave_type=r.leave_type,
+        start_date=r.start_date,
+        end_date=r.end_date,
+        status=r.status,
+        working_days=r.working_days,
+    )
+
+
 @router.get("/people")
 def people(db: DbDep) -> list[PersonOut]:
     return [PersonOut(id=p.id, full_name=p.full_name) for p in list_people(db)]
@@ -105,15 +142,12 @@ def me(actor: ActorDep) -> PersonOut:
 
 @router.get("/my/requests")
 def my_requests(actor: ActorDep, db: DbDep) -> MyRequestsOut:
-    return MyRequestsOut(
-        requests=[
-            RequestOut(
-                id=r.id,
-                leave_type=r.leave_type,
-                start_date=r.start_date,
-                end_date=r.end_date,
-                status=r.status,
-            )
-            for r in list_my_requests(db, actor)
-        ]
-    )
+    return MyRequestsOut(requests=[request_out(r) for r in list_my_requests(db, actor)])
+
+
+@router.post("/my/requests", status_code=201)
+def submit(body: NewRequestIn, actor: ActorDep, db: DbDep, now: TodayDep) -> RequestOut:
+    result = submit_request(db, actor, body.leave_type, body.start_date, body.end_date, now)
+    if isinstance(result, Err):
+        raise ApiError(409, result.code, REFUSALS[result.code])
+    return request_out(result.value)

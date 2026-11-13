@@ -1,8 +1,10 @@
+import threading
 from datetime import date
+from pathlib import Path
 
 import pytest
 
-from app.db import ALI_ID, ELIF_ID, Db
+from app.db import ALI_ID, ELIF_ID, Db, migrate, open_db, seed
 from app.leave import LeaveRequest, list_my_requests, submit_request
 from app.people import Person
 from app.result import Err, ErrorCode, Ok, Result
@@ -92,3 +94,32 @@ def test_other_employees_requests_do_not_block(db: Db) -> None:
     assert isinstance(submit(db, date(2026, 11, 16), date(2026, 11, 20), actor=ELIF), Ok)
     result = submit(db, date(2026, 11, 16), date(2026, 11, 20))
     assert isinstance(result, Ok) and isinstance(result.value, LeaveRequest)
+
+
+def test_concurrent_overlapping_submissions_store_one(tmp_path: Path) -> None:
+    # A file DB as the app runs it (plan 0002, A-1): a shared-cache memory DB refuses a second
+    # writer with "table is locked" instead of waiting, which the app never meets.
+    uri = (tmp_path / "leave.db").as_uri()
+    anchor = open_db(uri)
+    migrate(anchor)
+    seed(anchor)
+
+    def submit_once(barrier: threading.Barrier, results: list[Result[LeaveRequest]]) -> None:
+        db = open_db(uri)
+        barrier.wait()
+        results.append(submit(db, date(2026, 11, 16), date(2026, 11, 20)))
+        db.close()
+
+    for _ in range(10):
+        anchor.execute("DELETE FROM leave_requests")
+        barrier = threading.Barrier(2)
+        results: list[Result[LeaveRequest]] = []
+        threads = [threading.Thread(target=submit_once, args=(barrier, results)) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        assert sorted(type(r).__name__ for r in results) == ["Err", "Ok"]
+        assert [r.code for r in results if isinstance(r, Err)] == [ErrorCode.OVERLAP]
+        assert len(list_my_requests(anchor, ALI)) == 1
+    anchor.close()
