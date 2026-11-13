@@ -32,15 +32,16 @@
 - No coverage threshold: the criterion ↔ test map is the contract.
 
 ## What must be tested
-- Every business rule BR-1..BR-6 and the balance invariant (`docs/domain.md`) — unit, with edge
-  dates (weekends at both ends, year boundary, zero-working-day range).
+- Every business rule BR-1..BR-8 and the domain invariants (`docs/domain.md`) — unit, with edge
+  dates (weekends at both ends, year boundary, zero-working-day range, a range inside or across a
+  Plant shutdown) and BR-7's staffing boundary (exactly at Minimum staffing allowed, one below refused).
 - Every route's authorization (sensitive area): allowed actor, other Employee, other Manager,
   self-approval — API integration; out-of-scope access returns 404.
 - Every forbidden dependency — the architecture test.
 - Every UI state a spec lists (empty, loading, error, success, no permission) — inside an e2e journey.
 - **e2e journeys — budget: at most 3 journeys, 90 s total (full profile):**
   - J-1: log in → "My requests" (empty, then success). Added by the walking skeleton.
-  - J-2: submit a request that breaks a rule → error state shown.
+  - J-2: submit or approve a request that breaks a rule (incl. BR-7 staffing) → error state shown.
   - J-3: an Employee opens a Manager-only view → no-permission state.
   Over budget, no journey is added: the next UI check goes into an existing journey or a layer down.
 
