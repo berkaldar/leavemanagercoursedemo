@@ -24,7 +24,7 @@
 Not in v1: **Shift** (Early/Late/Night) — rotating shifts need a roster; that is its own product.
 
 ## Business rules
-- **BR-1:** A Leave request's end date is on or after its start date; its length is the number of Working days in the range (inclusive), and must be ≥ 1. A request entirely inside a Plant shutdown is therefore refused.
+- **BR-1:** A Leave request's end date is on or after its start date; its length is the number of Working days in the range (inclusive), and must be ≥ 1. A request entirely inside a Plant shutdown is therefore refused. The start date is not before today (spec 0002).
 - **BR-2:** An `Annual` request cannot exceed the Leave balance; `Pending` Annual requests count as already reserved.
 - **BR-3:** An Employee cannot have two overlapping Leave requests that are `Pending` or `Approved`.
 - **BR-4:** Only the requester's own Manager may approve or reject a request; nobody approves or rejects their own.

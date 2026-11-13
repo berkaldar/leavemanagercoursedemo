@@ -42,6 +42,7 @@
 - **e2e journeys — budget: at most 3 journeys, 90 s total (full profile):**
   - J-1: log in → "My requests" (empty, then success). Added by the walking skeleton.
   - J-2: submit or approve a request that breaks a rule (incl. BR-7 staffing) → error state shown.
+    Added by spec 0002 (submit); the approve part arrives with F-2.
   - J-3: an Employee opens a Manager-only view → no-permission state.
   Over budget, no journey is added: the next UI check goes into an existing journey or a layer down.
 
