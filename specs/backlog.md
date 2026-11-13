@@ -22,10 +22,13 @@ Ordered. Each becomes a spec in specs/active/ when it starts (/new-feature); its
 deleted in that spec's PR.
 
 - **F-1** — Leave balance: 20 Annual days per calendar year, Pending Annual requests count as
-  reserved, an Annual request cannot exceed the balance; the balance is shown on "My requests"
-  — Domain: BR-2, BR-6, balance invariant — After: spec 0002 — Source: planning 2026-11-07 (Berk)
-- **F-2** — Manager approves or rejects their direct reports' Pending requests, never their own
-  — Domain: BR-4, BR-5 — Sensitive area: Authorization — e2e J-3 — After: F-1
+  reserved, an Annual request cannot exceed the balance; Plant shutdowns are seeded and are not
+  Working days, so they never use Annual days; the balance is shown on "My requests"
+  — Domain: BR-1, BR-2, BR-6, BR-8, balance invariant — After: spec 0002 — Source: planning 2026-11-07 (Berk)
+- **F-2** — Manager approves or rejects their direct reports' Pending requests, never their own;
+  Lines and Minimum staffing are seeded, and approval is refused when the Line would fall below
+  Minimum staffing on any Working day (names the first short-staffed day)
+  — Domain: BR-4, BR-5, BR-7, BR-8 — Sensitive area: Authorization — e2e J-2, J-3 — After: F-1
   — Source: planning 2026-11-07 (Berk)
 - **F-3** — Employee cancels their own Pending request — Domain: BR-5 — After: F-2
   — Source: planning 2026-11-07 (Berk)
