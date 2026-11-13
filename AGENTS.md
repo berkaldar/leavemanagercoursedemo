@@ -1,8 +1,9 @@
 # AGENTS.md — Project Rules
 
-> **Leave Manager** — a small team web app: employees request leave, managers approve or reject,
-> balances are tracked. Course demo of the ANEW loop. Python 3.14 · FastAPI · sqlite3 · vanilla
-> JS/HTML/CSS · pytest + Playwright · ruff · mypy. Greenfield: the first spec is the walking skeleton.
+> **Leave Manager** for the assembly plant of ThrottleMaster (a fictional car maker): production
+> employees request leave, line Managers approve or reject within Minimum staffing, balances are
+> tracked. Course demo of the ANEW loop. Python 3.14 · FastAPI · sqlite3 · vanilla JS/HTML/CSS ·
+> pytest + Playwright · ruff · mypy. Domain terms and rules: `docs/domain.md`.
 
 ## Operating mode
 

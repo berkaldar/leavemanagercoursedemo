@@ -21,13 +21,15 @@
 - **AuthN (demo-grade, deliberate):** people are seeded; "login" = picking a seeded Employee. The
   session is Starlette `SessionMiddleware` — a signed (itsdangerous), `HttpOnly`, `SameSite=Lax`
   browser-session cookie that carries only a random session id; the server keeps the live ids and
-  forgets one on logout and on any new login attempt, so a copied cookie does not outlive it. A new id on every login. No passwords. **This app is never deployed with real people's data.**
+  forgets one on logout and on any new login attempt, so a copied cookie does not outlive it. A new id on every login. No passwords. **This app is never deployed with real people's data.** ThrottleMaster is a fictional brand;
+  seeded people, Lines and shutdowns are invented.
 - **AuthZ — sensitive area (`docs/domain.md`), default-deny:** every `/api` route requires a session
   except login and the seeded-people list for the login screen. The decision is made in the
   `app.leave` / `app.people` domain functions, which take the acting Employee as an explicit
   parameter — never only in `app.http`, never in the frontend.
 - An Employee sees and acts on their own requests; a Manager additionally sees and decides their
-  direct reports' requests. Nobody decides their own request (BR-4).
+  direct reports' requests and sees their own Line's staffing — never another Line's. Nobody decides
+  their own request (BR-4). The Minimum staffing check (BR-7) runs in `app.leave` on approve.
 - A resource outside the actor's scope answers **404**, not 403, so its existence does not leak.
 
 ## Dependencies
