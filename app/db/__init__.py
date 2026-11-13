@@ -33,9 +33,10 @@ class Db:
         row = self._connection.execute(sql, params).fetchone()
         return dict(row) if row else None
 
-    def execute(self, sql: str, params: tuple[object, ...] = ()) -> None:
+    def execute(self, sql: str, params: tuple[object, ...] = ()) -> int:
+        """Runs one statement in its own transaction; returns the number of rows it changed."""
         with self._connection:
-            self._connection.execute(sql, params)
+            return self._connection.execute(sql, params).rowcount
 
     def close(self) -> None:
         self._connection.close()

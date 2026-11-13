@@ -6,6 +6,11 @@ from enum import StrEnum
 
 class ErrorCode(StrEnum):
     NOT_FOUND = "NOT_FOUND"
+    END_BEFORE_START = "END_BEFORE_START"
+    NO_WORKING_DAYS = "NO_WORKING_DAYS"
+    START_IN_PAST = "START_IN_PAST"
+    SPANS_YEARS = "SPANS_YEARS"
+    OVERLAP = "OVERLAP"
 
 
 @dataclass(frozen=True)
