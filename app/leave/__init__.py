@@ -1,5 +1,6 @@
 """Leave requests and their rules (docs/domain.md, BR-1..BR-8)."""
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from uuid import uuid4
@@ -28,10 +29,14 @@ def plant_shutdowns(db: Db) -> list[Span]:
     return [(date.fromisoformat(r["start_date"]), date.fromisoformat(r["end_date"])) for r in rows]
 
 
+def _working_dates(start: date, end: date, shutdowns: list[Span]) -> Iterator[date]:
+    days = (start + timedelta(n) for n in range((end - start).days + 1))
+    return (d for d in days if d.weekday() < 5 and not any(s <= d <= e for s, e in shutdowns))
+
+
 def working_days(start: date, end: date, shutdowns: list[Span]) -> int:
     """Monday–Friday in start … end (inclusive), minus Plant shutdown days (docs/domain.md)."""
-    days = (start + timedelta(n) for n in range((end - start).days + 1))
-    return sum(1 for d in days if d.weekday() < 5 and not any(s <= d <= e for s, e in shutdowns))
+    return sum(1 for _ in _working_dates(start, end, shutdowns))
 
 
 def list_my_requests(db: Db, actor: Person) -> list[LeaveRequest]:
@@ -69,7 +74,8 @@ def submit_request(
     shutdowns = plant_shutdowns(db)
     if end < start:
         return Err(ErrorCode.END_BEFORE_START)
-    if working_days(start, end, shutdowns) == 0:
+    # The first Working day is enough: the range is not yet capped to one year here (0002 F-3).
+    if next(_working_dates(start, end, shutdowns), None) is None:
         return Err(ErrorCode.NO_WORKING_DAYS)
     if start < today:
         return Err(ErrorCode.START_IN_PAST)

@@ -71,6 +71,8 @@ def test_start_in_past_refused_today_allowed(db: Db) -> None:
 
 def test_spanning_two_years_refused(db: Db) -> None:
     assert refused(db, date(2026, 12, 21), date(2027, 1, 4)) == ErrorCode.SPANS_YEARS
+    # The farthest date the boundary accepts: refused without walking ~8,000 years (F-3).
+    assert refused(db, date(2026, 11, 16), date(9999, 12, 31)) == ErrorCode.SPANS_YEARS
 
 
 def test_first_failing_reason_wins(db: Db) -> None:
