@@ -125,6 +125,8 @@ def test_keyboard_only_submit_and_live_region(page: Page) -> None:
     page.keyboard.type("11162026")  # en-US: mm dd yyyy
     tab_to(page, "end-date", via="start-date")
     page.keyboard.type("11202026")
+    tab_to(page, "submit-request", via="end-date")
+    expect(page.get_by_role("button", name="Submit request")).to_be_focused()
     page.keyboard.press("Enter")
     expect(message(page)).to_have_text("Request submitted.")
     expect(page.get_by_role("row")).to_have_count(2)
