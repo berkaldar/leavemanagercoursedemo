@@ -1,5 +1,5 @@
 import threading
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -10,6 +10,7 @@ from app.people import Person
 from app.result import Err, ErrorCode, Ok, Result
 
 TODAY = date(2026, 11, 14)
+NOW = datetime(2026, 11, 14, 7, 30, tzinfo=UTC)
 ALI = Person(id=ALI_ID, full_name="Ali Demir", manager_id=None)
 ELIF = Person(id=ELIF_ID, full_name="Elif Şahin", manager_id=None)
 
@@ -17,7 +18,7 @@ ELIF = Person(id=ELIF_ID, full_name="Elif Şahin", manager_id=None)
 def submit(
     db: Db, start: date, end: date, *, actor: Person = ALI, leave_type: str = "Annual"
 ) -> Result[LeaveRequest]:
-    return submit_request(db, actor, leave_type, start, end, TODAY)
+    return submit_request(db, actor, leave_type, start, end, TODAY, NOW)
 
 
 def refused(db: Db, start: date, end: date) -> ErrorCode:
@@ -45,6 +46,12 @@ def test_valid_request_is_pending(db: Db, leave_type: str) -> None:
     )
 
 
+def test_created_at_is_the_injected_utc_instant(db: Db) -> None:
+    assert isinstance(submit(db, date(2026, 11, 16), date(2026, 11, 20)), Ok)
+    [row] = db.fetch_all("SELECT created_at FROM leave_requests")
+    assert row["created_at"] == "2026-11-14T07:30:00+00:00"
+
+
 def test_end_before_start_refused(db: Db) -> None:
     assert refused(db, date(2026, 11, 20), date(2026, 11, 19)) == ErrorCode.END_BEFORE_START
     assert isinstance(submit(db, date(2026, 11, 18), date(2026, 11, 18)), Ok)
@@ -57,9 +64,9 @@ def test_no_working_days_refused(db: Db) -> None:
 
 def test_start_in_past_refused_today_allowed(db: Db) -> None:
     monday = date(2026, 11, 16)
-    result = submit_request(db, ALI, "Annual", date(2026, 11, 13), monday, monday)
+    result = submit_request(db, ALI, "Annual", date(2026, 11, 13), monday, monday, NOW)
     assert isinstance(result, Err) and result.code == ErrorCode.START_IN_PAST
-    assert isinstance(submit_request(db, ALI, "Annual", monday, monday, monday), Ok)
+    assert isinstance(submit_request(db, ALI, "Annual", monday, monday, monday, NOW), Ok)
 
 
 def test_spanning_two_years_refused(db: Db) -> None:

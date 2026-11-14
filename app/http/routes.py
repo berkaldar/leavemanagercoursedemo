@@ -100,6 +100,14 @@ def today() -> date:
 TodayDep = Annotated[date, Depends(today)]
 
 
+def now() -> datetime:
+    """The Clock: the current instant in UTC, for audit timestamps (docs/conventions.md)."""
+    return datetime.now(UTC)
+
+
+NowDep = Annotated[datetime, Depends(now)]
+
+
 def request_out(r: LeaveRequest) -> RequestOut:
     return RequestOut(
         id=r.id,
@@ -146,8 +154,8 @@ def my_requests(actor: ActorDep, db: DbDep) -> MyRequestsOut:
 
 
 @router.post("/my/requests", status_code=201)
-def submit(body: NewRequestIn, actor: ActorDep, db: DbDep, now: TodayDep) -> RequestOut:
-    result = submit_request(db, actor, body.leave_type, body.start_date, body.end_date, now)
+def submit(body: NewRequestIn, actor: ActorDep, db: DbDep, day: TodayDep, at: NowDep) -> RequestOut:
+    result = submit_request(db, actor, body.leave_type, body.start_date, body.end_date, day, at)
     if isinstance(result, Err):
         raise ApiError(409, result.code, REFUSALS[result.code])
     return request_out(result.value)

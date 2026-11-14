@@ -1,7 +1,7 @@
 """Leave requests and their rules (docs/domain.md, BR-1..BR-8)."""
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from uuid import uuid4
 
 from app.db import Db, Row
@@ -57,7 +57,13 @@ def _request(row: Row, shutdowns: list[Span]) -> LeaveRequest:
 
 
 def submit_request(
-    db: Db, actor: Person, leave_type: str, start: date, end: date, today: date
+    db: Db,
+    actor: Person,
+    leave_type: str,
+    start: date,
+    end: date,
+    today: date,
+    created_at: datetime,
 ) -> Result[LeaveRequest]:
     """The actor's own new Pending request; checks run in spec 0002 R-5 order (BR-1/3/6)."""
     shutdowns = plant_shutdowns(db)
@@ -86,6 +92,6 @@ def submit_request(
                SELECT 1 FROM leave_requests
                WHERE employee_id = ? AND status IN ('Pending', 'Approved')
                  AND start_date <= ? AND end_date >= ?)""",
-        (*row.values(), today.isoformat(), actor.id, row["end_date"], row["start_date"]),
+        (*row.values(), created_at.isoformat(), actor.id, row["end_date"], row["start_date"]),
     )
     return Ok(_request(row, shutdowns)) if inserted else Err(ErrorCode.OVERLAP)
