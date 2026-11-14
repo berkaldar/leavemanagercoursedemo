@@ -67,6 +67,7 @@ default `file:leave.db`).
 - `datetime.utcnow()` is naive and deprecated — `datetime.now(UTC)`, and only inside the `Clock` — from bootstrap
 - Starlette's `Exception` handler runs in `ServerErrorMiddleware`, outside `@app.middleware` — headers a middleware sets are missing on 500s; set them in the handler too — from 0001 review (A-3)
 - JS `innerHTML` with data is an XSS hole (vanilla JS has no auto-escaping) — build DOM with `createElement` / `textContent`; never put data into `innerHTML` — from bootstrap
+- A single-page logout/login without reload keeps the previous user's DOM (rows, form values, messages) — clear every user-scoped element on logout and before showing the next user's view — from 0002 review (F-1)
 
 ## Enforced by tooling
 <!-- Wire new rules into `scripts/check` whenever possible — prose is advice, tooling is law. -->

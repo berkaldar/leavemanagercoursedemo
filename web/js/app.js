@@ -18,6 +18,11 @@ function show(viewId) {
 }
 
 async function showLogin() {
+  // No reload between users: drop everything of the previous one (Known traps, 0002 F-1).
+  $("requests-table").tBodies[0].replaceChildren();
+  $("requests-table").hidden = true;
+  $("request-form").reset();
+  for (const id of ["request-message", "requests-status", "signed-in"]) $(id).textContent = "";
   const people = await api("GET", "/people");
   $("person").replaceChildren(
     new Option("Choose your name", ""),

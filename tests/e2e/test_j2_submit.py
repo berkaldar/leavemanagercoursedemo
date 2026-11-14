@@ -77,6 +77,30 @@ def test_submitting_then_error_keeps_values(page: Page) -> None:
     expect(page.get_by_role("status")).to_have_text("You have no leave requests yet.")
 
 
+def test_next_user_sees_nothing_of_the_previous_one(page: Page) -> None:
+    page.goto("/")
+    log_in(page, "Ali Demir")
+    fill(page, "Annual", "2026-11-16", "2026-11-20")
+    submit(page)
+    expect(page.get_by_role("row")).to_have_count(2)
+    fill(page, "Annual", "2026-11-18", "2026-11-19")
+    submit(page)
+    expect(message(page)).to_have_text(
+        "You already have a pending or approved request on these dates."
+    )
+    held: list[Route] = []
+    page.route("**/api/my/requests", lambda r: held.append(r))
+    page.get_by_role("button", name="Log out").click()
+    log_in(page, "Elif Şahin")
+    expect(page.get_by_text("Signed in as Elif Şahin")).to_be_visible()
+    expect(page.get_by_role("row")).to_have_count(0)  # while her list is still loading
+    expect(message(page)).to_have_text("")
+    expect_values(page, "", "", "")
+    held[0].fulfill(status=500, json={"error": "INTERNAL", "message": "Something went wrong."})
+    expect(page.get_by_role("status")).to_have_text("Could not load your requests.")
+    expect(page.get_by_role("row")).to_have_count(0)
+
+
 def tab_to(page: Page, target: str, via: str) -> None:
     # Tab also visits a date field's own parts (its picker), so it may take a few presses.
     for _ in range(4):
