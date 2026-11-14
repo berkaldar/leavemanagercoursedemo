@@ -15,6 +15,11 @@ SEED_PEOPLE = [
     (ALI_ID, "Ali Demir", DENIZ_ID),
     (ELIF_ID, "Elif Şahin", DENIZ_ID),
 ]
+# Invented plant reference data (docs/domain.md, BR-8; spec 0002, R-4).
+SEED_SHUTDOWNS = [
+    ("Christmas break", "2026-12-24", "2026-12-31"),
+    ("Summer shutdown", "2027-07-26", "2027-08-06"),
+]
 
 
 class Db:
@@ -28,9 +33,10 @@ class Db:
         row = self._connection.execute(sql, params).fetchone()
         return dict(row) if row else None
 
-    def execute(self, sql: str, params: tuple[object, ...] = ()) -> None:
+    def execute(self, sql: str, params: tuple[object, ...] = ()) -> int:
+        """Runs one statement in its own transaction; returns the number of rows it changed."""
         with self._connection:
-            self._connection.execute(sql, params)
+            return self._connection.execute(sql, params).rowcount
 
     def close(self) -> None:
         self._connection.close()
@@ -52,4 +58,9 @@ def seed(db: Db) -> None:
     for person in SEED_PEOPLE:
         db.execute(
             "INSERT OR IGNORE INTO people (id, full_name, manager_id) VALUES (?, ?, ?)", person
+        )
+    for shutdown in SEED_SHUTDOWNS:
+        db.execute(
+            "INSERT OR IGNORE INTO plant_shutdowns (name, start_date, end_date) VALUES (?, ?, ?)",
+            shutdown,
         )

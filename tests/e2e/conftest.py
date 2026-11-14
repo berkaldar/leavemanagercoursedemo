@@ -8,6 +8,7 @@ import socket
 import threading
 import time
 from collections.abc import Iterator
+from datetime import date
 from typing import Any
 
 import pytest
@@ -15,10 +16,12 @@ import uvicorn
 from fastapi import FastAPI
 
 from app.db import migrate, open_db, seed
+from app.http import today
 from app.main import create_app
 from tests.conftest import memory_db_uri
 
 E2E_DIR = "tests/e2e/"
+TODAY = date(2026, 11, 14)
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
@@ -31,6 +34,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 @pytest.fixture(scope="session")
 def live_app() -> Iterator[tuple[FastAPI, str]]:
     app = create_app(memory_db_uri(), session_secret="e2e-secret")
+    app.dependency_overrides[today] = lambda: TODAY  # Determinism: a fixed "today"
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     server = uvicorn.Server(uvicorn.Config(app, log_level="warning"))
@@ -52,6 +56,13 @@ def live_app() -> Iterator[tuple[FastAPI, str]]:
 @pytest.fixture(scope="session")
 def base_url(live_app: tuple[FastAPI, str]) -> str:
     return live_app[1]
+
+
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args: dict[str, Any]) -> dict[str, Any]:
+    # Determinism: date fields follow the browser's UI language (else the OS one), not the
+    # context locale — pin it so typing a date is the same on every machine.
+    return {**browser_type_launch_args, "args": ["--lang=en-US"]}
 
 
 @pytest.fixture(scope="session")

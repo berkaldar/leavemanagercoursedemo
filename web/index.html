@@ -27,6 +27,29 @@
         <button id="logout" type="button">Log out</button>
         <p id="requests-status" role="status" aria-live="polite"></p>
         <button id="retry" type="button" hidden>Try again</button>
+        <table id="requests-table" hidden>
+          <thead>
+            <tr><th>Type</th><th>Start</th><th>End</th><th>Working days</th><th>Status</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <form id="request-form" novalidate>
+          <h2>New request</h2>
+          <label for="leave-type">Leave type</label>
+          <select id="leave-type">
+            <option value="">Choose a type</option>
+            <option>Annual</option>
+            <option>Unpaid</option>
+          </select>
+          <label for="start-date">Start date</label>
+          <input id="start-date" type="date">
+          <label for="end-date">End date</label>
+          <input id="end-date" type="date">
+          <button id="submit-request" type="submit">Submit request</button>
+          <!-- aria-live without role="status": one status region per page (J-1 finds it by role). -->
+          <p id="request-message" aria-live="polite"></p>
+        </form>
       </section>
     </main>
   </body>

@@ -13,3 +13,9 @@ CREATE TABLE IF NOT EXISTS leave_requests (
     status      TEXT NOT NULL CHECK (status IN ('Pending', 'Approved', 'Rejected', 'Cancelled')),
     created_at  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS plant_shutdowns (
+    name       TEXT PRIMARY KEY,
+    start_date TEXT NOT NULL,
+    end_date   TEXT NOT NULL
+);
